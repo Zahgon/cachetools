@@ -16,15 +16,11 @@ def _warn_classmethod(stacklevel):
 
 
 def _warn_instance_dict(msg, stacklevel):
-    warnings.warn(
-        msg,
-        DeprecationWarning,
-        stacklevel=stacklevel,
-    )
+    pass
 
 
 def _none(_):
-    return None
+    pass
 
 
 class _WrapperBase:
@@ -56,11 +52,11 @@ class _WrapperBase:
 
     @property
     def cache_lock(self):
-        return self.__lock(self._obj)
+        pass
 
     @property
     def cache_condition(self):
-        return self.__cond(self._obj)
+        pass
 
 
 class _DescriptorBase:
@@ -187,8 +183,7 @@ def _condition_info(method, cache, key, lock, cond, info):
                     self.__hits = self.__misses = 0
 
             def cache_info(self):
-                with self.cache_lock:
-                    return info(self.cache, self.__hits, self.__misses)
+                pass
 
     return Descriptor()
 
@@ -227,8 +222,7 @@ def _locked_info(method, cache, key, lock, info):
                     self.__hits = self.__misses = 0
 
             def cache_info(self):
-                with self.cache_lock:
-                    return info(self.cache, self.__hits, self.__misses)
+                pass
 
     return Descriptor()
 
@@ -261,7 +255,7 @@ def _unlocked_info(method, cache, key, info):
                 self.__hits = self.__misses = 0
 
             def cache_info(self):
-                return info(self.cache, self.__hits, self.__misses)
+                pass
 
     return Descriptor()
 
@@ -298,8 +292,7 @@ def _condition(method, cache, key, lock, cond):
             c.clear()
 
     def classmethod_wrapper(self, *args, **kwargs):
-        p = pending.setdefault(self, set())
-        return wrapper(self, p, *args, **kwargs)
+        pass
 
     class Descriptor(_DeprecatedDescriptorBase):
         class Wrapper(_WrapperBase):

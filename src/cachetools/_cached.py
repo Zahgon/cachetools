@@ -46,8 +46,7 @@ def _condition_info(func, cache, key, lock, cond, info):
             hits = misses = 0
 
     def cache_info():
-        with lock:
-            return info(hits, misses)
+        pass
 
     wrapper.cache_clear = cache_clear
     wrapper.cache_info = cache_info
@@ -84,8 +83,7 @@ def _locked_info(func, cache, key, lock, info):
             hits = misses = 0
 
     def cache_info():
-        with lock:
-            return info(hits, misses)
+        pass
 
     wrapper.cache_clear = cache_clear
     wrapper.cache_info = cache_info
@@ -117,7 +115,7 @@ def _unlocked_info(func, cache, key, info):
         hits = misses = 0
 
     def cache_info():
-        return info(hits, misses)
+        pass
 
     wrapper.cache_clear = cache_clear
     wrapper.cache_info = cache_info

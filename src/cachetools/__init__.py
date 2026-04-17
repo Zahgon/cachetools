@@ -39,7 +39,7 @@ class _DefaultSize:
         pass
 
     def pop(self, _key):
-        return 1
+        pass
 
     def clear(self):
         pass
@@ -121,14 +121,7 @@ class Cache(collections.abc.MutableMapping):
             return default
 
     def pop(self, key, default=__marker):
-        if key in self:
-            value = self[key]
-            del self[key]
-        elif default is self.__marker:
-            raise KeyError(key)
-        else:
-            value = default
-        return value
+        pass
 
     def setdefault(self, key, default=None):
         if key in self:
@@ -151,17 +144,17 @@ class Cache(collections.abc.MutableMapping):
     @property
     def maxsize(self):
         """The maximum size of the cache."""
-        return self.__maxsize
+        pass
 
     @property
     def currsize(self):
         """The current size of the cache."""
-        return self.__currsize
+        pass
 
     @staticmethod
     def getsizeof(value):
         """Return the size of a cache element's value."""
-        return 1
+        pass
 
 
 class FIFOCache(Cache):
@@ -184,12 +177,7 @@ class FIFOCache(Cache):
 
     def popitem(self):
         """Remove and return the `(key, value)` pair first inserted."""
-        try:
-            key = next(iter(self.__order))
-        except StopIteration:
-            raise KeyError("%s is empty" % type(self).__name__) from None
-        else:
-            return (key, self.pop(key))
+        pass
 
     def clear(self):
         Cache.clear(self)
@@ -207,10 +195,7 @@ class LFUCache(Cache):
             self.keys = set()
 
         def unlink(self):
-            next = self.next
-            prev = self.prev
-            prev.next = next
-            next.prev = prev
+            pass
 
     def __init__(self, maxsize, getsizeof=None):
         Cache.__init__(self, maxsize, getsizeof)
@@ -248,12 +233,7 @@ class LFUCache(Cache):
 
     def popitem(self):
         """Remove and return the `(key, value)` pair least frequently used."""
-        root = self.__root
-        curr = root.next
-        if curr is root:
-            raise KeyError("%s is empty" % type(self).__name__) from None
-        key = next(iter(curr.keys))  # remove an arbitrary element
-        return (key, self.pop(key))
+        pass
 
     def clear(self):
         Cache.clear(self)
@@ -263,21 +243,7 @@ class LFUCache(Cache):
 
     def __touch(self, key):
         """Increment use count"""
-        link = self.__links[key]
-        curr = link.next
-        if curr.count != link.count + 1:
-            if len(link.keys) == 1:
-                link.count += 1
-                return
-            curr = LFUCache._Link(link.count + 1)
-            curr.next = link.next
-            link.next = curr.next.prev = curr
-            curr.prev = link
-        curr.keys.add(key)
-        link.keys.remove(key)
-        if not link.keys:
-            link.unlink()
-        self.__links[key] = curr
+        pass
 
 
 class LRUCache(Cache):
@@ -303,12 +269,7 @@ class LRUCache(Cache):
 
     def popitem(self):
         """Remove and return the `(key, value)` pair least recently used."""
-        try:
-            key = next(iter(self.__order))
-        except StopIteration:
-            raise KeyError("%s is empty" % type(self).__name__) from None
-        else:
-            return (key, self.pop(key))
+        pass
 
     def clear(self):
         Cache.clear(self)
@@ -316,10 +277,7 @@ class LRUCache(Cache):
 
     def __touch(self, key):
         """Mark as recently used"""
-        try:
-            self.__order.move_to_end(key)
-        except KeyError:
-            self.__order[key] = None
+        pass
 
 
 class RRCache(Cache):
@@ -334,7 +292,7 @@ class RRCache(Cache):
     @property
     def choice(self):
         """The `choice` function used by the cache."""
-        return self.__choice
+        pass
 
     def __setitem__(self, key, value, cache_setitem=Cache.__setitem__):
         cache_setitem(self, key, value)
@@ -353,12 +311,7 @@ class RRCache(Cache):
 
     def popitem(self):
         """Remove and return a random `(key, value)` pair."""
-        try:
-            key = self.__choice(self.__keys)
-        except IndexError:
-            raise KeyError("%s is empty" % type(self).__name__) from None
-        else:
-            return (key, self.pop(key))
+        pass
 
     def clear(self):
         Cache.clear(self)
@@ -413,22 +366,19 @@ class _TimedCache(Cache):
 
     @property
     def currsize(self):
-        with self.__timer as time:
-            self.expire(time)
-            return super().currsize
+        pass
 
     @property
     def timer(self):
         """The timer function used by the cache."""
-        return self.__timer
+        pass
 
     def get(self, *args, **kwargs):
         with self.__timer:
             return Cache.get(self, *args, **kwargs)
 
     def pop(self, *args, **kwargs):
-        with self.__timer:
-            return Cache.pop(self, *args, **kwargs)
+        pass
 
     def setdefault(self, *args, **kwargs):
         with self.__timer:
@@ -455,10 +405,7 @@ class TTLCache(_TimedCache):
             return TTLCache._Link, (self.key, self.expires)
 
         def unlink(self):
-            next = self.next
-            prev = self.prev
-            prev.next = next
-            next.prev = prev
+            pass
 
     def __init__(self, maxsize, ttl, timer=time.monotonic, getsizeof=None):
         _TimedCache.__init__(self, maxsize, timer, getsizeof)
@@ -532,43 +479,21 @@ class TTLCache(_TimedCache):
     @property
     def ttl(self):
         """The time-to-live value of the cache's items."""
-        return self.__ttl
+        pass
 
     def expire(self, time=None):
         """Remove expired items from the cache and return an iterable of the
         expired `(key, value)` pairs.
 
         """
-        if time is None:
-            time = self.timer()
-        root = self.__root
-        curr = root.next
-        links = self.__links
-        expired = []
-        cache_delitem = Cache.__delitem__
-        cache_getitem = Cache.__getitem__
-        while curr is not root and not (time < curr.expires):
-            expired.append((curr.key, cache_getitem(self, curr.key)))
-            cache_delitem(self, curr.key)
-            del links[curr.key]
-            next = curr.next
-            curr.unlink()
-            curr = next
-        return expired
+        pass
 
     def popitem(self):
         """Remove and return the `(key, value)` pair least recently used that
         has not already expired.
 
         """
-        with self.timer as time:
-            self.expire(time)
-            try:
-                key = next(iter(self.__links))
-            except StopIteration:
-                raise KeyError("%s is empty" % type(self).__name__) from None
-            else:
-                return (key, self.pop(key))
+        pass
 
     def clear(self):
         _TimedCache.clear(self)
@@ -577,9 +502,7 @@ class TTLCache(_TimedCache):
         self.__links.clear()
 
     def __getlink(self, key):
-        value = self.__links[key]
-        self.__links.move_to_end(key)
-        return value
+        pass
 
 
 class TLRUCache(_TimedCache):
@@ -660,45 +583,21 @@ class TLRUCache(_TimedCache):
     @property
     def ttu(self):
         """The local time-to-use function used by the cache."""
-        return self.__ttu
+        pass
 
     def expire(self, time=None):
         """Remove expired items from the cache and return an iterable of the
         expired `(key, value)` pairs.
 
         """
-        if time is None:
-            time = self.timer()
-        items = self.__items
-        order = self.__order
-        # clean up the heap if too many items are marked as removed
-        if len(order) > len(items) * self.__HEAP_CLEANUP_FACTOR:
-            self.__order = order = [item for item in order if not item.removed]
-            heapq.heapify(order)
-        expired = []
-        cache_delitem = Cache.__delitem__
-        cache_getitem = Cache.__getitem__
-        while order and (order[0].removed or not (time < order[0].expires)):
-            item = heapq.heappop(order)
-            if not item.removed:
-                expired.append((item.key, cache_getitem(self, item.key)))
-                cache_delitem(self, item.key)
-                del items[item.key]
-        return expired
+        pass
 
     def popitem(self):
         """Remove and return the `(key, value)` pair least recently used that
         has not already expired.
 
         """
-        with self.timer as time:
-            self.expire(time)
-            try:
-                key = next(iter(self.__items))
-            except StopIteration:
-                raise KeyError("%s is empty" % type(self).__name__) from None
-            else:
-                return (key, self.pop(key))
+        pass
 
     def clear(self):
         _TimedCache.clear(self)
@@ -706,9 +605,7 @@ class TLRUCache(_TimedCache):
         del self.__order[:]
 
     def __getitem(self, key):
-        value = self.__items[key]
-        self.__items.move_to_end(key)
-        return value
+        pass
 
 
 _CacheInfo = collections.namedtuple(
@@ -724,25 +621,7 @@ def cached(cache, key=keys.hashkey, lock=None, condition=None, info=False):
     from ._cached import _wrapper
 
     def decorator(func):
-        if info:
-            if isinstance(cache, Cache):
-
-                def make_info(hits, misses):
-                    return _CacheInfo(hits, misses, cache.maxsize, cache.currsize)
-
-            elif isinstance(cache, collections.abc.Mapping):
-
-                def make_info(hits, misses):
-                    return _CacheInfo(hits, misses, None, len(cache))
-
-            else:
-
-                def make_info(hits, misses):
-                    return _CacheInfo(hits, misses, 0, 0)
-
-            return _wrapper(func, cache, key, lock, condition, info=make_info)
-        else:
-            return _wrapper(func, cache, key, lock, condition)
+        pass
 
     return decorator
 
@@ -755,18 +634,6 @@ def cachedmethod(cache, key=keys.methodkey, lock=None, condition=None, info=Fals
     from ._cachedmethod import _wrapper
 
     def decorator(method):
-        if info:
-
-            def make_info(cache, hits, misses):
-                if isinstance(cache, Cache):
-                    return _CacheInfo(hits, misses, cache.maxsize, cache.currsize)
-                elif isinstance(cache, collections.abc.Mapping):
-                    return _CacheInfo(hits, misses, None, len(cache))
-                else:
-                    raise TypeError("cache(self) must return a mutable mapping")
-
-            return _wrapper(method, cache, key, lock, condition, info=make_info)
-        else:
-            return _wrapper(method, cache, key, lock, condition)
+        pass
 
     return decorator
